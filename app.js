@@ -30,17 +30,31 @@ const knownTypes = {
 	]
 };
 
+const allPics = [];
+
 const fr = new FileReader();
 
 function init() {
 	// register file load triggers
 	savefileElem.addEventListener('change', startSaveParse);
 	saveloadElem.addEventListener('click', startSaveParse);
+	
+	// save all
+	const controls = document.getElementById('controls');
+	let saveButtonElem = document.createElement('button');
+	saveButtonElem.innerHTML = "Save All";
+	saveButtonElem.addEventListener('click', () => {
+		for (let i = 0; i < allPics.length; i++) {
+		    download(allPics[i]);
+		}
+	});
+	controls.appendChild(saveButtonElem);
+	/////////
 }
 
 function startSaveParse() {
 	if (savefileElem.value == null || savefileElem.value == "") return;
-	
+	allPics.length = 0;
 	fr.onload = handleSaveFile;
 	fr.readAsBinaryString(savefileElem.files[0]);
 }
@@ -96,8 +110,9 @@ function wrapPicture(canvasElem) {
 	pictureDiv.appendChild(canvasElem);
 
 	let saveButtonElem = document.createElement('button');
-	saveButtonElem.innerHTML = "save!";
+	saveButtonElem.innerHTML = "Save";
 	saveButtonElem.addEventListener('click', () => {
+		download(canvasElem);
 		download(canvasElem);
 	});
 	pictureDiv.appendChild(saveButtonElem);
@@ -130,7 +145,7 @@ function decodePalmImage(offset, imageWidth, imageHeight, imageFormat) {
 	let tempImage = tempCtx.createImageData(imageWidth, imageHeight);
 	const p = tempImage.data;
 
-	let scale = Math.ceil(640 / imageWidth);
+	let scale = 1; // Math.ceil(640 / imageWidth);
 
 	if (imageFormat == "palm") {
 		for (let ty = 0; ty < imageHeight; ty += 1) {
@@ -186,6 +201,7 @@ function decodePalmImage(offset, imageWidth, imageHeight, imageFormat) {
 	ctx.imageSmoothingEnabled = false;
 	ctx.drawImage(tempCanvas, 0, 0, imageWidth * scale, imageHeight * scale);
 	tempCanvas.remove();
+	allPics.push(newCanvas);
 	let pictureWrapper = wrapPicture(newCanvas);
 	picturesElem.appendChild(pictureWrapper);
 }
